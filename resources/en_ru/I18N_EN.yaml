@@ -1,0 +1,5 @@
+kind: I18N
+locale: EN
+description: test en
+data:
+  name: "Test"
