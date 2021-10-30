@@ -1,0 +1,5 @@
+kind: I18N
+locale: EE
+description: test en
+data:
+  name: "Helly belly"

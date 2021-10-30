@@ -1,5 +1,6 @@
 kind: I18N
 locale: RU
 description: test ru
+provider: FileProvider
 data:
   name: "Тест"

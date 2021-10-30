@@ -1,10 +1,8 @@
-use include_dir::{include_dir, Dir};
 use simple_i18n::InternationalCore;
 
-const PROJECT_DIR: Dir = include_dir!("examples/eu_ru");
-
 fn main() {
-    let core = InternationalCore::from(PROJECT_DIR);
+    let manifest = format!("{}{}", env!("CARGO_MANIFEST_DIR"), "\\resources\\en_ru");
+    let core = InternationalCore::new(manifest);
     let eu = core.get_by_locale("EN");
     assert_eq!(true, eu.is_some());
     let ru = core.get_by_locale("RU");
@@ -12,11 +10,15 @@ fn main() {
     let eu_un = eu.unwrap();
     let ru_un = ru.unwrap();
 
-    let eu_holder = eu_un.read().unwrap();
-    let ru_holder = ru_un.read().unwrap();
+    let eu_name = eu_un.get("name");
+    let ru_name = ru_un.get("name");
 
-    let eu_test = eu_holder.get("name").unwrap();
-    assert_eq!("Test", &*eu_test);
-    let ru_test = ru_holder.get("name").unwrap();
-    assert_eq!("Тест", &*ru_test);
+    assert_eq!(true, eu_name.is_some());
+    assert_eq!("Test", eu_name.unwrap());
+
+    assert_eq!(true, ru_name.is_some());
+    assert_eq!("Тест", ru_name.unwrap());
+
+    // Return Key as this.
+    assert_eq!("modify", eu_un.get_or_default("modify"))
 }
