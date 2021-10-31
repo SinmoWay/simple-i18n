@@ -9,7 +9,7 @@ fn main() {
     let ee_opt = core.get_by_locale("EE");
     assert_eq!(true, ee_opt.is_some());
     let ee = ee_opt.unwrap();
-    let val = ee.get_or_default("name");
+    let val = ee.get_or_default("data.name");
     assert_eq!("Helly belly", val);
     let hello = ee.get_or_default("Hello");
     assert_eq!("World", hello);

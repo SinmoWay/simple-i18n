@@ -3,3 +3,10 @@ locale: EN
 description: test en
 data:
   name: "Test"
+  representation:
+    yes: "No!"
+  currency:
+    a: "No definition"
+  data:
+    block: "test1"
+    wok: "test2"

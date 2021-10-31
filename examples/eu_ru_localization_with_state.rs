@@ -10,8 +10,8 @@ fn main() {
     let eu_un = eu.unwrap();
     let ru_un = ru.unwrap();
 
-    let eu_name = eu_un.get("name");
-    let ru_name = ru_un.get("name");
+    let eu_name = eu_un.get("data.name");
+    let ru_name = ru_un.get("data.name");
 
     assert_eq!(true, eu_name.is_some());
     assert_eq!("Test", eu_name.unwrap());
@@ -20,5 +20,5 @@ fn main() {
     assert_eq!("Тест", ru_name.unwrap());
 
     // Return Key as this.
-    assert_eq!("modify", eu_un.get_or_default("modify"))
+    assert_eq!("data.modify", eu_un.get_or_default("data.modify"))
 }

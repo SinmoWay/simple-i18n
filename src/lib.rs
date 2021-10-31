@@ -4,7 +4,7 @@
 //! [Github project](https://github.com/SinmoWay/simple-i18n)
 
 #![deny(missing_docs)]
-#![deny(warnings)]
+// #![deny(warnings)]
 
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -20,6 +20,7 @@ use err_derive::Error;
 #[cfg(feature = "incl_dir")]
 use include_dir::Dir;
 use notify::{ErrorKind, RecommendedWatcher, RecursiveMode, Watcher};
+use serde_yaml::Value;
 
 /// Error type
 pub type Error = I18nError;
@@ -497,6 +498,11 @@ impl WatchProvider for Holder {
     }
 }
 
+enum FileData {
+    Map(HashMap<String, FileData>),
+    String(String),
+}
+
 /// Default structure by file localization.
 ///
 /// #Examples
@@ -512,7 +518,6 @@ impl WatchProvider for Holder {
 /// ```
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct FileStructure {
-
     /// Kind - I18N. It is necessary to understand if the file does not belong to the localization category.
     kind: String,
 
@@ -526,7 +531,8 @@ pub struct FileStructure {
     provider: Option<Providers>,
 
     /// Data - localization information. Format key-value, optional.
-    data: Option<HashMap<String, String>>,
+    #[serde(flatten)]
+    data: Option<Value>,
 }
 
 /// Loading [FileStructure], and creating [Holder].
@@ -545,18 +551,19 @@ fn load_struct_from_str(data: &str, path: Option<String>) -> Result<Holder, Erro
 
     log::trace!("Loading structure by path: {}.\nDescription: {:?}\nLocale: {}", &path, &structure.description, &structure.locale);
 
-    let locale = structure.locale;
+    let locale = structure.locale.clone();
 
     match structure.data {
-        None => {}
+        None => {
+            println!("NOne")
+        }
         Some(kv) => {
             messages
                 .write()
                 .and_then(|mut m| {
-                    m.extend(kv);
+                    m.extend(flatten(String::default(), FileData::from(kv)));
                     Ok(())
                 }).unwrap();
-            // Need check this error.
         }
     };
 
@@ -607,7 +614,7 @@ fn load_struct<S: Into<String>>(path: S) -> Result<Holder, Error> {
             log::error!("Error while open file {}. Additional information: {}", &path, &e);
             Error::IoError {
                 path: path.clone(),
-                cause: e.to_string()
+                cause: e.to_string(),
             }
         })?;
     file.read_to_string(&mut data).unwrap();
@@ -622,4 +629,43 @@ fn get_locale_or_default(locale: &str) -> String {
 /// Get current system locale or return default `en-US`
 fn get_current_locale_or_default() -> String {
     get_locale_or_default("en-US")
+}
+
+impl From<serde_yaml::Value> for FileData {
+    fn from(value: serde_yaml::Value) -> Self {
+        match value {
+            serde_yaml::Value::Mapping(obj) => FileData::Map(
+                obj.into_iter()
+                    .filter_map(|(k, v)| match k {
+                        serde_yaml::Value::String(s) => Some((s, FileData::from(v))),
+                        _ => None,
+                    })
+                    .collect(),
+            ),
+            serde_yaml::Value::String(s) => FileData::String(s),
+            _ => FileData::Map(Default::default()),
+        }
+    }
+}
+
+fn flatten(name: String, val: FileData) -> HashMap<String, String> {
+    let mut map = HashMap::new();
+    match val {
+        FileData::Map(array) => {
+            for (name2, v) in array.into_iter() {
+                map.extend(flatten(
+                    if name.is_empty()  {
+                        name2
+                    }  else {
+                        format!("{}.{}", name, name2)
+                    },
+                    v,
+                ));
+            }
+        }
+        FileData::String(s) => {
+            map.insert(name, s.clone());
+        }
+    };
+    map
 }

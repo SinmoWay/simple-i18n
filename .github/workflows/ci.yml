@@ -1,0 +1,43 @@
+name: ci
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  test:
+    name: test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        build: [stable, nightly, macos, win-msvc]
+        include:
+          - build: stable
+            os: ubuntu-18.04
+            rust: stable
+          - build: nightly
+            os: ubuntu-18.04
+            rust: nightly
+          - build: macos
+            os: macOS-latest
+            rust: stable
+          - build: win-msvc
+            os: windows-2019
+            rust: stable
+    steps:
+      - uses: actions/checkout@v1
+      - name: Install Rust
+        uses: hecrj/setup-rust-action@v1
+        with:
+          rust-version: ${{ matrix.rust }}
+      - name: run custom provider example
+        run: run --package simple-i18n --example custom_provider --all-features
+      - name: run eu_ru_localization example
+        run: run --package simple-i18n --example eu_ru_localization
+      - name: run eu_ru_localization example
+        run: run --package simple-i18n --example eu_ru_localization_with_state
+      - name: run eu_ru_localization_incl_dir example with incl_dir features
+        run: run --package simple-i18n --example eu_ru_localization_incl_dir --features incl_dir
+      - name: run file_change example
+        run: run --package simple-i18n --example file_change
