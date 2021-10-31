@@ -4,7 +4,7 @@
 //! [Github project](https://github.com/SinmoWay/simple-i18n)
 
 #![deny(missing_docs)]
-// #![deny(warnings)]
+#![deny(warnings)]
 
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -561,7 +561,7 @@ fn load_struct_from_str(data: &str, path: Option<String>) -> Result<Holder, Erro
             messages
                 .write()
                 .and_then(|mut m| {
-                    m.extend(flatten(String::default(), FileData::from(kv)));
+                    m.extend(to_flatten(String::default(), FileData::from(kv)));
                     Ok(())
                 }).unwrap();
         }
@@ -648,12 +648,12 @@ impl From<serde_yaml::Value> for FileData {
     }
 }
 
-fn flatten(name: String, val: FileData) -> HashMap<String, String> {
+fn to_flatten(name: String, val: FileData) -> HashMap<String, String> {
     let mut map = HashMap::new();
     match val {
         FileData::Map(array) => {
             for (name2, v) in array.into_iter() {
-                map.extend(flatten(
+                map.extend(to_flatten(
                     if name.is_empty()  {
                         name2
                     }  else {

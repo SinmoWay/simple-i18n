@@ -32,12 +32,12 @@ jobs:
         with:
           rust-version: ${{ matrix.rust }}
       - name: run custom provider example
-        run: run --package simple-i18n --example custom_provider --all-features
+        run: cargo run --package simple-i18n --example custom_provider
       - name: run eu_ru_localization example
-        run: run --package simple-i18n --example eu_ru_localization
+        run: cargo run --package simple-i18n --example eu_ru_localization
       - name: run eu_ru_localization example
-        run: run --package simple-i18n --example eu_ru_localization_with_state
+        run: cargo run --package simple-i18n --example eu_ru_localization_with_state
       - name: run eu_ru_localization_incl_dir example with incl_dir features
-        run: run --package simple-i18n --example eu_ru_localization_incl_dir --features incl_dir
+        run: cargo run --package simple-i18n --example eu_ru_localization_incl_dir --features incl_dir
       - name: run file_change example
-        run: run --package simple-i18n --example file_change
+        run: cargo run --package simple-i18n --example file_change
