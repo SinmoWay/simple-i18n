@@ -8,7 +8,7 @@ fn main() {
     let ru_locale = core.get_by_locale("RU").unwrap();
     let mut name = ru_locale.get_or_default("data.name");
     assert_eq!("Тест", name);
-    let ru_path = format!("{}\\I18N_RU.yaml", &manifest);
+    let ru_path = format!("{}/I18N_RU.yaml", &manifest);
     let mut data = std::fs::read_to_string(&ru_path).unwrap();
     data = data.replace("Тест", "Хей! Как ты?");
     std::fs::write(&ru_path, data.as_bytes()).unwrap();
