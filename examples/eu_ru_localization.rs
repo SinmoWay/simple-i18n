@@ -1,4 +1,4 @@
-use simple_i18n::InternationalCore;
+use simple_i18n::{GetData, InternationalCore};
 
 fn main() {
     let manifest = format!("{}{}", env!("CARGO_MANIFEST_DIR"), "\\resources\\en_ru");

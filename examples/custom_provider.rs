@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
-use simple_i18n::{Error, InternationalCore, WatchProvider};
+use simple_i18n::{Error, GetData, InternationalCore, WatchProvider};
 
 fn main() {
     let manifest = format!("{}{}", env!("CARGO_MANIFEST_DIR"), "\\resources\\en_ru");
