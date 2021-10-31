@@ -21,4 +21,5 @@ serde_yaml = "0.8.21"
 include_dir = { version = "0.6.2", optional = true }
 
 [features]
+default = []
 incl_dir = ["include_dir"]

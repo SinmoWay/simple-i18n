@@ -1,6 +1,10 @@
 //! Implements a simpler version of I18n.
 //! Supports 2 built-in data providers (for static projects where the files do not change and where the localization file can be changed by the user or developer).
 //! For other cases, you can write your own data provider.
+//! [Github project](https://github.com/SinmoWay/simple-i18n)
+
+#![deny(missing_docs)]
+#![deny(warnings)]
 
 use std::cell::RefCell;
 use std::collections::HashMap;
@@ -20,32 +24,55 @@ use notify::{ErrorKind, RecommendedWatcher, RecursiveMode, Watcher};
 /// Error type
 pub type Error = I18nError;
 
+/// Library errors
 #[derive(Debug, Error)]
 pub enum I18nError {
     /// Access denied for file.
     /// Not found file and e.t.c.
     #[error(display = "File with path {:?} not found.", path)]
-    IoError { path: String },
+    IoError {
+        /// The file that generated the error
+        path: String,
+        /// Cause message
+        cause: String,
+    },
 
     /// Invalid structure locale file.
     #[error(display = "Structure with path {:?} invalid. Additional information: {:?}", path, cause)]
-    InvalidStructure { path: String, cause: String },
+    InvalidStructure {
+        /// The file that generated the error
+        path: String,
+        /// Cause message
+        cause: String,
+    },
 
     /// Invalid kind of file.
     #[error(display = "Structure with path {:?} invalid. Expected kind: I18N.", path)]
-    InvalidHeader { path: String },
+    InvalidHeader {
+        /// The file that generated the error
+        path: String,
+    },
 
     /// Error while watching by file.
     #[error(display = "Watching by file return error: {:?}", message)]
-    WatchError { message: String },
+    WatchError {
+        /// Cause message
+        message: String
+    },
 
     /// File extension is not .yaml or .yml
     #[error(display = "File type is not supported: {:?}", path)]
-    NotSupportedFileExtension { path: String },
+    NotSupportedFileExtension {
+        /// The file that generated the error
+        path: String
+    },
 
     /// The error is generated when you have two files with the same locale or when you manually add an existing locale.
     #[error(display = "Duplicate locale holder for {:?}", locale)]
-    DuplicateLocale { locale: String },
+    DuplicateLocale {
+        /// Locale that was not found
+        locale: String
+    },
 }
 
 /// Implementation of the state observer.
@@ -113,11 +140,11 @@ pub trait WatchProvider {
 }
 
 /// Base providers
-/// [FileProvider] - dynamically watcher for file.
-/// [StaticFileProvider] - static file. It is not being watched. Default option if the `provider` is not specified in the file structure
 #[derive(Debug, Clone, serde::Deserialize, serde::Serialize)]
 pub enum Providers {
+    /// [FileProvider] - dynamically watcher for file.
     FileProvider,
+    /// [StaticFileProvider] - static file. It is not being watched. Default option if the `provider` is not specified in the file structure
     StaticFileProvider,
 }
 
@@ -185,7 +212,7 @@ impl WatchProvider for FileProvider {
                     }
                     ErrorKind::PathNotFound => {
                         log::error!("Path not found: {}", &self.path);
-                        Err(Error::IoError { path: self.path.clone() })
+                        Err(Error::IoError { path: self.path.clone(), cause: String::default() })
                     }
                     ErrorKind::WatchNotFound => {
                         log::error!("Watcher not found for: {}", &self.path);
@@ -234,6 +261,18 @@ pub struct InternationalCore {
 /// Additional library, use features = ["incl_dir"] to enable.
 /// Helps to include static files in the project that will not change.
 /// See for example 'eu_ru_localization_incl_dir.rs'
+///
+/// # Examples
+///
+/// ```
+/// use include_dir::Dir;
+/// use simple_i18n::InternationalCore;
+/// const PROJECT_DIR: Dir = include_dir!("resources/en_ru");
+/// fn main() {
+///     let core = InternationalCore::from(PROJECT_DIR);
+///     let locale_holder = core.get_by_locale("my_locale").unwrap();
+/// }
+/// ```
 #[cfg(feature = "incl_dir")]
 impl<'a> From<Dir<'a>> for InternationalCore {
     fn from(dir: Dir) -> Self {
@@ -254,12 +293,21 @@ impl<'a> From<Dir<'a>> for InternationalCore {
 }
 
 impl InternationalCore {
+    /// Creating new instance of InternationalCore.
+    ///
+    /// # Example
+    /// ```
+    /// use simple_i18n::InternationalCore;
+    /// let core = InternationalCore::new("folder/locales");
+    /// ```
+    /// If the file generates an error [Error::NotSupportedFileExtension], it will be skipped.
+    /// The rest of the errors cause panic.
     pub fn new<S: Into<String>>(folder: S) -> InternationalCore {
         let folder = folder.into();
         let dir = std::fs::read_dir(&folder)
             .map_err(|e| {
-                log::error!("{}", e);
-                Error::IoError { path: folder }
+                log::error!("{}", &e);
+                Error::IoError { path: folder, cause: e.to_string() }
             }).unwrap();
         let mut msg_holder = HashMap::new();
 
@@ -341,15 +389,20 @@ impl InternationalCore {
 
 /// Getting data by holder's.
 pub trait GetData {
+    /// Getting locale message by key. If key does not exist, return [Option::None].
     fn get<S: AsRef<str>>(&self, key: S) -> Option<String>;
+    /// Getting locale message by key. If key does not exist, return `key`.
     fn get_or_default<S: AsRef<str>>(&self, key: S) -> String;
 }
 
+/// Works with an ordinary hash map, useful when the data never changes.
+/// It's simple wrapper.
 pub struct UnWatchData {
     holder: HashMap<String, String>,
 }
 
 impl UnWatchData {
+    /// Creating [UnWatchData] by reference for original data.
     pub fn new(holder: &HashMap<String, String>) -> Self {
         UnWatchData {
             holder: holder.clone()
@@ -374,11 +427,13 @@ impl GetData for UnWatchData {
     }
 }
 
+/// We work with a mutable data ref.
 pub struct Data {
     holder: Arc<RwLock<HashMap<String, String>>>,
 }
 
 impl Data {
+    /// Creating [Data] by reference for original data. (mutable)
     pub fn new(holder: Arc<RwLock<HashMap<String, String>>>) -> Self {
         Data {
             holder: Arc::clone(&holder)
@@ -415,6 +470,17 @@ pub struct Holder {
 }
 
 impl Holder {
+    /// Return [Holder]
+    ///
+    /// # Arguments
+    ///
+    /// * `path` - folder by localization's.
+    ///
+    /// # Examples
+    /// ```
+    /// use simple_i18n::Holder;
+    /// let holder = Holder::new("my_locale_folder");
+    /// ```
     pub fn new<S: Into<String>>(path: S) -> Result<Holder, Error> {
         load_struct(path)
     }
@@ -431,12 +497,7 @@ impl WatchProvider for Holder {
     }
 }
 
-/// Default structure include:
-/// Kind - I18N. It is necessary to understand if the file does not belong to the localization category.
-/// Locale - file locale type.
-/// Description - for user, optional parameter.
-/// Provider - optional parameter, if is None, [StaticFileProvider]. For additional information see [Providers].
-/// Data - localization information. Format key-value, optional.
+/// Default structure by file localization.
 ///
 /// #Examples
 ///
@@ -451,10 +512,20 @@ impl WatchProvider for Holder {
 /// ```
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct FileStructure {
+
+    /// Kind - I18N. It is necessary to understand if the file does not belong to the localization category.
     kind: String,
+
+    /// Locale - file locale type.
     locale: String,
+
+    /// Description - for user, optional parameter.
     description: Option<String>,
+
+    /// Provider - optional parameter, if is None, [StaticFileProvider]. For additional information see [Providers].
     provider: Option<Providers>,
+
+    /// Data - localization information. Format key-value, optional.
     data: Option<HashMap<String, String>>,
 }
 
@@ -520,7 +591,7 @@ fn load_struct_from_str(data: &str, path: Option<String>) -> Result<Holder, Erro
     };
 }
 
-/// Load file ant trigger loading [FileStructure] by `fn load_struct_from_str`
+/// Load file ant trigger loading [FileStructure] by [load_struct_from_str()]
 /// If file extension is not .yaml or .yml, the error is hit [Error::NotSupportedFileExtension]
 /// Another error, if IO operation has been failed. [Error::IoError]
 fn load_struct<S: Into<String>>(path: S) -> Result<Holder, Error> {
@@ -533,9 +604,10 @@ fn load_struct<S: Into<String>>(path: S) -> Result<Holder, Error> {
 
     let mut file = File::open(&path)
         .map_err(|e| {
-            log::error!("Error while open file {}. Additional information: {}", &path, e);
+            log::error!("Error while open file {}. Additional information: {}", &path, &e);
             Error::IoError {
-                path: path.clone()
+                path: path.clone(),
+                cause: e.to_string()
             }
         })?;
     file.read_to_string(&mut data).unwrap();
