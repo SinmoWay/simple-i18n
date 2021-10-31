@@ -17,7 +17,7 @@ fn main() {
     assert_eq!("Хей! Как ты?", name);
     data = data.replace("Хей! Как ты?", "Тест");
     std::fs::write(&ru_path, data.as_bytes()).unwrap();
-    sleep(Duration::from_millis(10));
+    sleep(Duration::from_millis(100));
     name = ru_locale.get_or_default("data.name");
     assert_eq!("Тест", name);
 }
