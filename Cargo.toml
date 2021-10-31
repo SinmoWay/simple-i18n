@@ -5,7 +5,8 @@ edition = "2021"
 exclude = [
     "examples/*",
     "resources/*",
-    ".github/*"
+    ".github/*",
+    "scheme/*",
 ]
 license = "MIT"
 readme = "README.md"

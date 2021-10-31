@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "type": "object",
+  "properties": {
+    "kind": {
+      "enum": [
+        "I18N"
+      ]
+    },
+    "locale": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "provider": {
+      "enum": [
+        "FileProvider",
+        "StaticFileProvider"
+      ]
+    },
+    "data": {
+      "type": "object",
+      "properties": {
+        "patternProperties": {
+          ".{1,}": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "kind",
+    "locale"
+  ]
+}

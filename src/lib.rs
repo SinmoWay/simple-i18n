@@ -180,12 +180,12 @@ impl WatchProvider for FileProvider {
                 // The simplest solution is to set a minimum timeout between these events.
                 sleep(Duration::from_millis(10));
                 log::debug!("Modify {}. Reloading data.", &path.clone());
+                // Validation file
+                let structure = load_struct(&path.clone()).unwrap();
                 // Lock data and clear
                 let mut w_holder = holder.write().unwrap();
                 w_holder.clear();
 
-                // Validation file
-                let structure = load_struct(&path.clone()).unwrap();
                 // Clone internal state.
                 let l_holder = structure.messages.write().unwrap().clone();
                 w_holder.extend(l_holder);
