@@ -3,7 +3,7 @@ use std::time::Duration;
 use simple_i18n::{GetData, InternationalCore};
 
 fn main() {
-    let manifest = format!("{}{}", env!("CARGO_MANIFEST_DIR"), "\\resources\\en_ru");
+    let manifest = format!("{}{}", env!("CARGO_MANIFEST_DIR"), "/resources/en_ru");
     let core = InternationalCore::new(manifest.clone());
     let ru_locale = core.get_by_locale("RU").unwrap();
     let mut name = ru_locale.get_or_default("data.name");

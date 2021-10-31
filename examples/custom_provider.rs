@@ -3,7 +3,7 @@ use std::sync::{Arc, RwLock};
 use simple_i18n::{Error, GetData, InternationalCore, WatchProvider};
 
 fn main() {
-    let manifest = format!("{}{}", env!("CARGO_MANIFEST_DIR"), "\\resources\\en_ru");
+    let manifest = format!("{}{}", env!("CARGO_MANIFEST_DIR"), "/resources/en_ru");
     let mut core = InternationalCore::new(manifest);
     core.add_provider("EE", Box::new(CustomProvider::new())).unwrap();
     let ee_opt = core.get_by_locale("EE");

@@ -1,7 +1,7 @@
 use simple_i18n::{GetData, InternationalCore};
 
 fn main() {
-    let manifest = format!("{}{}", env!("CARGO_MANIFEST_DIR"), "\\resources\\en_ru");
+    let manifest = format!("{}{}", env!("CARGO_MANIFEST_DIR"), "/resources/en_ru");
     let core = InternationalCore::new(manifest);
     let eu = core.get_by_locale_state("EN");
     assert_eq!(true, eu.is_some());
