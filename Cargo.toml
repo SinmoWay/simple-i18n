@@ -10,8 +10,10 @@ exclude = [
 ]
 license = "MIT"
 readme = "README.md"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+repository = "https://github.com/SinmoWay/simple-i18n"
+keywords = ["internationalization", "i18n", "simple-i18n"]
+categories = ["internationalization"]
+description = "Simple I18N implementation with the ability to update localizations in real time"
 
 [dependencies]
 sys-locale = "0.1.0"
