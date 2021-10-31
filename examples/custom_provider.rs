@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
-use simple_i18n::{Error, GetData, InternationalCore, WatchProvider};
+use sorrow_i18n::{Error, GetData, InternationalCore, WatchProvider};
 
 fn main() {
     let manifest = format!("{}{}", env!("CARGO_MANIFEST_DIR"), "/resources/en_ru");
@@ -28,7 +28,7 @@ impl CustomProvider {
 }
 
 impl WatchProvider for CustomProvider {
-    fn watch(&mut self) -> Result<(), simple_i18n::Error> {
+    fn watch(&mut self) -> Result<(), sorrow_i18n::Error> {
         println!("Accepted custom provider");
         let data = self.data.write();
         let mut un = data.unwrap();

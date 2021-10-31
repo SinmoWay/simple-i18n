@@ -1,5 +1,5 @@
 [package]
-name = "simple-i18n"
+name = "sorrow-i18n"
 version = "0.1.0"
 edition = "2021"
 exclude = [
@@ -7,6 +7,7 @@ exclude = [
     "resources/*",
     ".github/*"
 ]
+license = "MIT"
 readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

@@ -103,7 +103,7 @@ pub enum I18nError {
 /// ```
 /// use std::collections::HashMap;
 /// use std::sync::{Arc, RwLock};
-/// use simple_i18n::{Error, WatchProvider};
+/// use sorrow_i18n::{Error, WatchProvider};
 ///
 /// impl WatchProvider for CustomProvider {
 ///     fn watch(&mut self) -> Result<(), Error> {
@@ -126,7 +126,7 @@ pub enum I18nError {
 /// Add provider for holder.
 ///
 /// ```
-///     use simple_i18n::InternationalCore;
+///     use sorrow_i18n::InternationalCore;
 ///
 ///     let mut core = InternationalCore::new("resources/locales");
 ///     core.add_provider("my locale", Box::new(CustomProvider::new())).unwrap();
@@ -267,7 +267,7 @@ pub struct InternationalCore {
 ///
 /// ```
 /// use include_dir::Dir;
-/// use simple_i18n::InternationalCore;
+/// use sorrow_i18n::InternationalCore;
 /// const PROJECT_DIR: Dir = include_dir!("resources/en_ru");
 /// fn main() {
 ///     let core = InternationalCore::from(PROJECT_DIR);
@@ -298,7 +298,7 @@ impl InternationalCore {
     ///
     /// # Example
     /// ```
-    /// use simple_i18n::InternationalCore;
+    /// use sorrow_i18n::InternationalCore;
     /// let core = InternationalCore::new("folder/locales");
     /// ```
     /// If the file generates an error [Error::NotSupportedFileExtension], it will be skipped.
@@ -479,7 +479,7 @@ impl Holder {
     ///
     /// # Examples
     /// ```
-    /// use simple_i18n::Holder;
+    /// use sorrow_i18n::Holder;
     /// let holder = Holder::new("my_locale_folder");
     /// ```
     pub fn new<S: Into<String>>(path: S) -> Result<Holder, Error> {

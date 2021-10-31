@@ -1,5 +1,5 @@
 use include_dir::{include_dir, Dir};
-use simple_i18n::{GetData, InternationalCore};
+use sorrow_i18n::{GetData, InternationalCore};
 
 const PROJECT_DIR: Dir = include_dir!("resources/en_ru");
 
