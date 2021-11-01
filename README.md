@@ -1,7 +1,7 @@
 # Simple i18n
 
 [![ci](https://github.com/SinmoWay/simple-i18n/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/SinmoWay/simple-i18n/actions/workflows/ci.yml)
-[![docs.rs](https://docs.rs/sorrow-i18n/badge.svg)](https://docs.rs/sorrow-i18n)
+[![docs.rs](https://docs.rs/sorrow-i18n/badge.svg)](https://docs.rs/sorrow-i18n)  
 Simple implementation to load locale.
 
 ## Dependency
