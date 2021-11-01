@@ -392,8 +392,12 @@ impl InternationalCore {
 pub trait GetData {
     /// Getting locale message by key. If key does not exist, return [Option::None].
     fn get<S: AsRef<str>>(&self, key: S) -> Option<String>;
+
     /// Getting locale message by key. If key does not exist, return `key`.
     fn get_or_default<S: AsRef<str>>(&self, key: S) -> String;
+
+    /// Getting all keys in holder's
+    fn keys(&self) -> Vec<String>;
 }
 
 /// Works with an ordinary hash map, useful when the data never changes.
@@ -426,6 +430,10 @@ impl GetData for UnWatchData {
             }
         };
     }
+
+    fn keys(&self) -> Vec<String> {
+        self.holder.keys().map(|k|k.to_string()).collect::<Vec<String>>()
+    }
 }
 
 /// We work with a mutable data ref.
@@ -457,6 +465,10 @@ impl GetData for Data {
                 v.clone()
             }
         };
+    }
+
+    fn keys(&self) -> Vec<String> {
+        self.holder.read().unwrap().keys().map(|k|k.to_string()).collect::<Vec<String>>()
     }
 }
 

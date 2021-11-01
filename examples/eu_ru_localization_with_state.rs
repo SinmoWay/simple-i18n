@@ -20,5 +20,9 @@ fn main() {
     assert_eq!("Тест", ru_name.unwrap());
 
     // Return Key as this.
-    assert_eq!("data.modify", eu_un.get_or_default("data.modify"))
+    assert_eq!("data.modify", eu_un.get_or_default("data.modify"));
+
+    let keys = ru_un.keys();
+    assert_eq!(1usize, keys.len());
+    assert_eq!("data.name", keys.get(0).unwrap());
 }

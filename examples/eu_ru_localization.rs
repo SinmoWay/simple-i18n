@@ -35,4 +35,7 @@ fn main() {
     assert_eq!(true, data_wok.is_some());
     assert_eq!("test2", data_wok.unwrap());
 
+    let keys = ru_un.keys();
+    assert_eq!(1usize, keys.len());
+    assert_eq!("data.name", keys.get(0).unwrap());
 }
