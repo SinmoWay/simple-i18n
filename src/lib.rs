@@ -391,12 +391,52 @@ impl InternationalCore {
 /// Getting data by holder's.
 pub trait GetData {
     /// Getting locale message by key. If key does not exist, return [Option::None].
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sorrow_i18n::{GetData, InternationalCore};
+    /// let i18n = InternationalCore::new("locale");
+    /// let en = i18n.get_by_locale("en").unwrap();
+    /// let my_data = en.get("my_data");
+    ///
+    /// match my_data {
+    ///     None => {
+    ///         panic!("No found my_data key.")
+    ///     }
+    ///     Some(k) => {
+    ///         println!("Found key my_data, value: {}", &k)
+    ///     }
+    /// }
+    /// ```
     fn get<S: AsRef<str>>(&self, key: S) -> Option<String>;
 
     /// Getting locale message by key. If key does not exist, return `key`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sorrow_i18n::{GetData, InternationalCore};
+    /// let i18n = InternationalCore::new("locale");
+    /// let en = i18n.get_by_locale("en").unwrap();
+    /// // If data is not found ref my_data == "my_data"
+    /// // Else you getting data.
+    /// let my_data = en.get_or_default("my_data");
+    /// ```
     fn get_or_default<S: AsRef<str>>(&self, key: S) -> String;
 
     /// Getting all keys in holder's
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use sorrow_i18n::{GetData, InternationalCore};
+    /// let i18n = InternationalCore::new("locale");
+    /// let en = i18n.get_by_locale("en").unwrap();
+    /// let keys = en.keys();
+    /// // Print all key's in en locale holder.
+    /// keys.iter().for_each(|k| println!("{}", k));
+    /// ```
     fn keys(&self) -> Vec<String>;
 }
 
@@ -432,7 +472,7 @@ impl GetData for UnWatchData {
     }
 
     fn keys(&self) -> Vec<String> {
-        self.holder.keys().map(|k|k.to_string()).collect::<Vec<String>>()
+        self.holder.keys().map(|k| k.to_string()).collect::<Vec<String>>()
     }
 }
 
@@ -468,7 +508,7 @@ impl GetData for Data {
     }
 
     fn keys(&self) -> Vec<String> {
-        self.holder.read().unwrap().keys().map(|k|k.to_string()).collect::<Vec<String>>()
+        self.holder.read().unwrap().keys().map(|k| k.to_string()).collect::<Vec<String>>()
     }
 }
 
@@ -666,9 +706,9 @@ fn to_flatten(name: String, val: FileData) -> HashMap<String, String> {
         FileData::Map(array) => {
             for (name2, v) in array.into_iter() {
                 map.extend(to_flatten(
-                    if name.is_empty()  {
+                    if name.is_empty() {
                         name2
-                    }  else {
+                    } else {
                         format!("{}.{}", name, name2)
                     },
                     v,
