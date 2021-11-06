@@ -41,3 +41,7 @@ jobs:
         run: cargo run --package sorrow-i18n --example eu_ru_localization_incl_dir --features incl_dir
       - name: run file_change example
         run: cargo run --package sorrow-i18n --example file_change
+      - name: run macro
+        run: cargo run --package sorrow-i18n --example macro --features macro
+      - name: run macro with incl dir
+        run: cargo run --package sorrow-i18n --example macro_with_incl_dir --features macro,incl_dir

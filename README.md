@@ -21,12 +21,14 @@ sorrow-i18n = "0.1.0"
 
 A simple feature for loading static files into a project.
 
-Usage:
+[Usage](#incl_dir-usage)
 
-```toml
-[dependencies]
-sorrow-i18n = { version = "0.1.0", features = ["incl_dir"] }
-```
+#### macro
+
+Added macros for static kernel initialization `init!` and `init_dir!` if you use the `incl_dir` feature. After initialization, use the macro at any point: `i18n!`
+
+[Usage](#macro-usage)
+
 
 ## [Docs](https://docs.rs/sorrow-i18n)
 
@@ -225,3 +227,60 @@ If such a locale exists, the following actions will be performed:
 * `holder` -> getting current data 
 * `provider` -> `set_data(current_data_in_holder)`
 * `provider` -> `watch()`
+
+# Macro usage
+
+## Add dependencies
+
+```toml
+[dependencies]
+sorrow-i18n = { version = "0.1.0", features = ["macro"] }
+```
+
+## Initial
+
+There are two methods used for initialization (depending on whether you include `incl_dir` depending.)
+
+* `init_i18n!` - A macro that allows you to initialize the i18n core. (`InternationalCore`)
+  * Example for usage: `init_i18n!("my_locale_folder");`
+* `init_i18n_static_dir!` - The same thing, only for the feature `incl_dir`
+  * Example for usage: `const PROJECT_DIR: Dir = include_dir!("resources/en_ru"); init_i18n_static_dir!(PROJECT_DIR);`
+
+## Usage
+
+The main macro for interaction will be `i18n!`. The first argument is the locale, the second argument is the key. If the locale is not found or the key is not found, the key itself is returned instead of the value.
+
+Usage example: 
+```
+    let manifest = format!("{}{}", env!("CARGO_MANIFEST_DIR"), "/resources/en_ru");
+    // Init i18n core
+    init_i18n!(manifest);
+    // Getting data.name key by ru locale
+    let test = i18n!("RU", "data.name");
+    println!("test: {}", &*test);
+    assert_eq!("Тест", &*test);
+```
+
+Case where locale or key not found:
+```
+    let not_found_data = i18n!("RANDOM_LOCALE_NAME", "data.not_found_me");
+    println!("data not found: {}", &*not_found_data);
+    assert_eq!("data.not_found_me", &*not_found_data);
+```
+
+
+# Incl_dir usage
+
+## Add dependencies
+
+```toml
+[dependencies]
+sorrow-i18n = { version = "0.1.0", features = ["incl_dir"] }
+```
+
+## Initial and usage
+
+```
+const PROJECT_DIR: Dir = include_dir!("resources/en_ru");
+let core = InternationalCore::from(PROJECT_DIR);
+```

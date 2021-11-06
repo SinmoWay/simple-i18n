@@ -6,12 +6,30 @@
 #![deny(missing_docs)]
 #![deny(warnings)]
 
-use std::cell::RefCell;
+/// Macro feature.
+/// Adds 2 macros, the first one serves for initialization, the second one for getting the value from the holders.
+///
+/// # Examples
+///
+/// ```
+/// // Let's initialize our i18n core.
+/// init_i18n!("locale/");
+///
+/// // Getting data by holder. (locale is required)
+/// // If the key is not found or the locale is not found, return the passed key.
+/// let test = i18n!("RU", "data.name");
+/// assert_eq!("Тест", &*test);
+/// let not_found_data = i18n!("RU", "data.not_found_me");
+/// assert_eq!("data.not_found_me", &*not_found_data);
+/// ```
+#[cfg(feature = "macro")]
+pub mod feature_macro;
+
 use std::collections::HashMap;
 use std::fs::{File};
 use std::io::Read;
 use std::path::Path;
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, Mutex, RwLock};
 use std::thread::sleep;
 use std::time::Duration;
 use sys_locale::get_locale;
@@ -71,8 +89,17 @@ pub enum I18nError {
     /// The error is generated when you have two files with the same locale or when you manually add an existing locale.
     #[error(display = "Duplicate locale holder for {:?}", locale)]
     DuplicateLocale {
-        /// Locale that was not found
+        /// Duplicate locale
         locale: String
+    },
+
+    /// An error due to which the provider was not added to the locale.
+    #[error(display = "The provider has not been added to the {:?} locale. Cause: {:?}", locale, cause)]
+    ProviderNotAddedError {
+        /// Locale where provider return error
+        locale: String,
+        /// Cause error
+        cause: String,
     },
 }
 
@@ -283,8 +310,17 @@ impl<'a> From<Dir<'a>> for InternationalCore {
         // Setting default watcher by StaticFileProvider immediately.
         for file in files {
             let content = std::str::from_utf8(file.contents()).unwrap();
-            let mut structure = load_struct_from_str(content, None).unwrap();
-            structure.provider = RefCell::new(Box::new(StaticFileProvider {}));
+            let structure = load_struct_from_str(content, None).unwrap();
+            let cl_struct = Arc::clone(&structure.provider);
+            let provider = cl_struct.lock();
+            match provider {
+                Ok(mut provider) => {
+                    *provider = Box::new(StaticFileProvider {});
+                }
+                Err(_e) => {
+                    panic!("Update provider by file has been failed. Poison mutex status.");
+                }
+            }
             msg_holder.insert(structure.locale.clone(), structure);
         };
         InternationalCore {
@@ -367,12 +403,28 @@ impl InternationalCore {
     }
 
     /// Overrides the current provider for your localization. Implementation example: `examples/custom_provider.rs`
-    pub fn add_provider(&mut self, locale: &str, provider: Box<dyn WatchProvider + 'static>) -> Result<(), Error> {
+    pub fn add_provider(&mut self, locale: &str, provider: Box<dyn WatchProvider + 'static + Sync + Send>) -> Result<(), Error> {
         let holder = self.holders.get(locale);
-        let holder = holder.unwrap();
-        holder.provider.replace(provider);
-        holder.provider.borrow_mut().set_data(Arc::clone(&holder.messages))?;
-        holder.provider.borrow_mut().watch()?;
+        match holder {
+            None => {
+                log::warn!("The provider has not been added. The locale to which you tried to add the provider does not exist.");
+                return Err(Error::ProviderNotAddedError { locale: locale.to_string(), cause: "locale not found.".to_string() });
+            }
+            Some(holder) => {
+                let guard = holder.provider.lock();
+                match guard {
+                    Ok(mut pr) => {
+                        *pr = provider;
+                        pr.set_data(Arc::clone(&holder.messages))?;
+                        pr.watch()?;
+                    }
+                    Err(_e) => {
+                        log::error!("Failed to update provider. Mutex on provider has been poison.");
+                        panic!("Poison mutex on add provider.");
+                    }
+                }
+            }
+        }
         Ok(())
     }
 
@@ -461,14 +513,7 @@ impl GetData for UnWatchData {
     }
 
     fn get_or_default<S: AsRef<str>>(&self, key: S) -> String {
-        return match self.holder.get(key.as_ref()) {
-            None => {
-                key.as_ref().to_string().clone()
-            }
-            Some(v) => {
-                v.clone()
-            }
-        };
+        return self.get(key.as_ref()).unwrap_or_else(|| key.as_ref().to_string());
     }
 
     fn keys(&self) -> Vec<String> {
@@ -493,7 +538,7 @@ impl Data {
 impl GetData for Data {
     fn get<S: AsRef<str>>(&self, key: S) -> Option<String> {
         let state = self.holder.read().unwrap();
-        return state.clone().get(key.as_ref()).map(|r| r.to_string());
+        return state.get(key.as_ref()).map(|r| r.to_string());
     }
 
     fn get_or_default<S: AsRef<str>>(&self, key: S) -> String {
@@ -519,7 +564,7 @@ impl GetData for Data {
 pub struct Holder {
     messages: Arc<RwLock<HashMap<String, String>>>,
     locale: String,
-    provider: RefCell<Box<dyn WatchProvider>>,
+    provider: Arc<Mutex<Box<dyn WatchProvider + Sync + Send>>>,
 }
 
 impl Holder {
@@ -541,7 +586,7 @@ impl Holder {
 
 impl WatchProvider for Holder {
     fn watch(&mut self) -> Result<(), Error> {
-        self.provider.borrow_mut().watch()
+        self.provider.lock().unwrap().watch()
     }
 
     fn set_data(&mut self, data: Arc<RwLock<HashMap<String, String>>>) -> Result<(), Error> {
@@ -607,7 +652,7 @@ fn load_struct_from_str(data: &str, path: Option<String>) -> Result<Holder, Erro
 
     match structure.data {
         None => {
-            println!("NOne")
+            log::warn!("Empty data for {} locale. File path: {}.", &structure.locale, &*path);
         }
         Some(kv) => {
             messages
@@ -625,7 +670,7 @@ fn load_struct_from_str(data: &str, path: Option<String>) -> Result<Holder, Erro
             Ok(Holder {
                 messages,
                 locale,
-                provider: RefCell::new(Box::new(StaticFileProvider {})),
+                provider: Arc::new(Mutex::new(Box::new(StaticFileProvider {}))),
             })
         }
         Some(p) => {
@@ -635,14 +680,14 @@ fn load_struct_from_str(data: &str, path: Option<String>) -> Result<Holder, Erro
                     Ok(Holder {
                         messages,
                         locale,
-                        provider: RefCell::new(Box::new(provider)),
+                        provider: Arc::new(Mutex::new(Box::new(provider))),
                     })
                 }
                 Providers::StaticFileProvider => {
                     Ok(Holder {
                         messages,
                         locale,
-                        provider: RefCell::new(Box::new(StaticFileProvider {})),
+                        provider: Arc::new(Mutex::new(Box::new(StaticFileProvider {}))),
                     })
                 }
             }
