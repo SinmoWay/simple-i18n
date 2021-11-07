@@ -20,9 +20,9 @@ static I18N_CORE: Lazy<RwLock<Vec<InternationalCore>>> = Lazy::new(|| { RwLock::
 /// Run function `sorrow_i18n::feature_macro::init`
 #[macro_export]
 macro_rules! init_i18n {
-    ($field:expr) => {
+    ($path:expr) => {
         {
-            $crate::feature_macro::init($field)
+            $crate::feature_macro::init($path)
         }
     }
 }
@@ -31,9 +31,9 @@ macro_rules! init_i18n {
 #[cfg(feature = "incl_dir")]
 #[macro_export]
 macro_rules! init_i18n_static_dir {
-    ($field:expr) => {
+    ($dir:expr) => {
         {
-            $crate::feature_macro::init_dir($field)
+            $crate::feature_macro::init_dir($dir)
         }
     }
 }
@@ -59,9 +59,9 @@ macro_rules! init_i18n_static_dir {
 /// Run function `crate::feature_macro::get_param`
 #[macro_export]
 macro_rules! i18n {
-    ($field:expr, $field1:expr) => {
+    ($locale:expr, $key:expr) => {
         {
-            $crate::feature_macro::get_param($field, $field1)
+            $crate::feature_macro::get_param($locale, $key)
         }
     };
 }
