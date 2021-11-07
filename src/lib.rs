@@ -2,6 +2,7 @@
 //! Supports 2 built-in data providers (for static projects where the files do not change and where the localization file can be changed by the user or developer).
 //! For other cases, you can write your own data provider.
 //! [Github project](https://github.com/SinmoWay/simple-i18n)
+//! [Crates](https://crates.io/crates/sorrow-i18n)
 
 #![deny(missing_docs)]
 #![deny(warnings)]
