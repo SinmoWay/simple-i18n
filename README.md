@@ -269,6 +269,7 @@ Case where locale or key not found:
     assert_eq!("data.not_found_me", &*not_found_data);
 ```
 
+[Example with custom data provider](https://github.com/SinmoWay/simple-i18n/blob/main/examples/macro_with_custom_provider.rs)
 
 # Incl_dir usage
 
