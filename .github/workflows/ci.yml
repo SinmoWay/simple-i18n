@@ -45,3 +45,5 @@ jobs:
         run: cargo run --package sorrow-i18n --example macro --features macro
       - name: run macro with incl dir
         run: cargo run --package sorrow-i18n --example macro_with_incl_dir --features macro,incl_dir
+      - name: run macro with custom provider
+        run: cargo run --package sorrow-i18n --example macro_with_custom_provider --features macro
