@@ -1,4 +1,4 @@
-use crate::{GetData, InternationalCore};
+use crate::{GetData, InternationalCore, WatchProvider};
 use std::sync::{RwLock};
 use once_cell::sync::Lazy;
 #[cfg(feature = "incl_dir")]
@@ -66,6 +66,29 @@ macro_rules! i18n {
     };
 }
 
+/// Setting custom provider by holder.
+///
+/// # Arguments
+/// * first argument - locale
+/// * second argument - provider
+///
+/// # Examples
+/// ```rust
+///     use sorrow_i18n::{init_i18n, set_i18n_provider};
+///     init_i18n!("locale/");
+///     let provider = Box::new(CustomProvider::new());
+///     set_i18n_provider!("EE", provider);
+/// ```
+/// [Full example](https://github.com/SinmoWay/simple-i18n/blob/main/examples/macro_with_custom_provider.rs)
+#[macro_export]
+macro_rules! set_i18n_provider {
+    ($locale:expr, $provider:expr) => {
+        {
+            $crate::feature_macro::set_provider($locale, $provider)
+        }
+    }
+}
+
 /// We statically initialize our core. In case of reinitialization, we panic.
 pub fn init<S: AsRef<str>>(_path: S) {
     check_empty_core();
@@ -116,6 +139,28 @@ pub fn get_param(locale: &str, key: &str) -> String {
                 }
                 Some(h) => {
                     h.get_or_default(key)
+                }
+            }
+        }
+    }
+}
+
+/// Add custom provider for locale holder
+pub fn set_provider(locale: &str, provider: Box<dyn WatchProvider + 'static + Sync + Send>) {
+    let mut guard = I18N_CORE.write().unwrap();
+
+    match guard.get_mut(0) {
+        None => {
+            panic!("The i18n core has not been created. Call the init_i18n! or init_i18n_static_dir! macro.");
+        }
+        Some(core) => {
+            match core.add_provider(&locale, provider) {
+                Ok(_) => {
+                    log::debug!("Provider has been accepted for locale: {}", &locale)
+                }
+                Err(e) => {
+                    log::error!("Error while add provider for locale {}", &locale);
+                    panic!("{:?}", e);
                 }
             }
         }
